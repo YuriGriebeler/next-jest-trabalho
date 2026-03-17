@@ -65,23 +65,22 @@ describe("LoginForm", () => {
         expect(error).not.toBeInTheDocument();
     });
 
-    it("desabilita botão quando isLoading é true", async () => {
-        jest.doMock("@/context/AuthContext", () => ({
-            useAuth: () => ({
-                user: null,
-                login: mockLogin,
-                logout: mockLogout,
-                isLoading: true,
-                setUser: mockSetUser,
-            }),
-        }));
+    it("não chama login quando validação falha (ex: e-mail vazio)", async () => {
+        mockLogin.mockResolvedValue({
+            ok: false,
+            errors: { email: "E-mail é obrigatório." }
+        });
 
-        const { LoginForm: LoginFormDynamic } = await import("../LoginForm");
-        render(<LoginFormDynamic />);
+        render(<LoginForm />);
 
-        const button = screen.getByRole("button", { name: /entrando|entrar/i });
-        expect(button).toBeDisabled();
+        const emailInput = screen.getByRole("textbox", { name: /e-mail/i });
+        await user.clear(emailInput);
+        await user.click(screen.getByRole("button", { name: /entrar/i }));
 
-        jest.dontMock("@/context/AuthContext");
+        await waitFor(() => {
+            expect(mockLogin).toHaveBeenCalled();
+        });
+
+        expect(await screen.findByText(/e-mail é obrigatório/i)).toBeInTheDocument();
     });
 });

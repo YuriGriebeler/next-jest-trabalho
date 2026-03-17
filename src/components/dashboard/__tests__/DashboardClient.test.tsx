@@ -32,11 +32,11 @@ describe("DashboardClient", () => {
         });
     });
 
-    it("exibe nome do usuário autenticado no cabeçalho", async () => {
+    it("exibe email do usuário autenticado no cabeçalho", async () => {
         render(<DashboardClient />);
 
         await waitFor(() => {
-            expect(screen.getByText(/test user/i)).toBeInTheDocument();
+            expect(screen.getByText(/test@test\.com/i)).toBeInTheDocument();
         });
     });
 
@@ -55,10 +55,7 @@ describe("DashboardClient", () => {
         render(<DashboardClient />);
 
         await waitFor(() => {
-            const emptyMsg = screen.queryByText(/nenhuma tarefa|lista vazia|comece adicionando/i);
-            if (emptyMsg) {
-                expect(emptyMsg).toBeInTheDocument();
-            }
+            expect(screen.getByText(/nenhuma tarefa cadastrada/i)).toBeInTheDocument();
         });
     });
 });

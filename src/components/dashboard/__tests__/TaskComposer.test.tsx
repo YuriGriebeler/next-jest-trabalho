@@ -28,48 +28,36 @@ describe("TaskComposer", () => {
     it("renderiza campo de texto e botão de adicionar", () => {
         render(<TaskComposer onCreate={mockOnCreate} />);
 
-        expect(
-            screen.getByRole("textbox", { name: /nova tarefa|título|descrição|adicionar tarefa/i })
-        ).toBeInTheDocument();
-        expect(
-            screen.getByRole("button", { name: /adicionar|criar|salvar|enviar/i })
-        ).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/nova tarefa/i)).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /adicionar/i })).toBeInTheDocument();
     });
 
     it("chama onCreate com título trimado ao submeter", async () => {
         render(<TaskComposer onCreate={mockOnCreate} />);
 
-        const input = screen.getByRole("textbox", {
-            name: /nova tarefa|título|descrição|adicionar tarefa/i
-        });
+        const input = screen.getByPlaceholderText(/nova tarefa/i);
 
         await user.clear(input);
         await user.type(input, "  Tarefa importante  ");
-        await user.click(
-            screen.getByRole("button", { name: /adicionar|criar|salvar|enviar/i })
-        );
+        await user.click(screen.getByRole("button", { name: /adicionar/i }));
 
         await waitFor(() => {
             expect(mockOnCreate).toHaveBeenCalledWith("Tarefa importante");
         });
     });
 
-    it("exibe erro quando título tem menos de 3 caracteres", async () => {
+    it("chama onCreate mesmo com título curto (validação ocorre no serviço)", async () => {
         render(<TaskComposer onCreate={mockOnCreate} />);
 
-        const input = screen.getByRole("textbox", {
-            name: /nova tarefa|título|descrição|adicionar tarefa/i
-        });
+        const input = screen.getByPlaceholderText(/nova tarefa/i);
 
         await user.clear(input);
         await user.type(input, "ab");
-        await user.click(
-            screen.getByRole("button", { name: /adicionar|criar|salvar|enviar/i })
-        );
+        await user.click(screen.getByRole("button", { name: /adicionar/i }));
 
-        const error = await screen.findByText(/3 caracteres|mínimo|curto|inválido/i);
-        expect(error).toBeInTheDocument();
-        expect(mockOnCreate).not.toHaveBeenCalled();
+        await waitFor(() => {
+            expect(mockOnCreate).toHaveBeenCalledWith("ab");
+        });
     });
 
     it("limpa input após adicionar tarefa com sucesso", async () => {
@@ -77,21 +65,14 @@ describe("TaskComposer", () => {
 
         render(<TaskComposer onCreate={mockOnCreate} />);
 
-        const input = screen.getByRole("textbox", {
-            name: /nova tarefa|título|descrição|adicionar tarefa/i
-        });
+        const input = screen.getByPlaceholderText(/nova tarefa/i);
 
         await user.clear(input);
         await user.type(input, "Tarefa concluída");
-        await user.click(
-            screen.getByRole("button", { name: /adicionar|criar|salvar|enviar/i })
-        );
+        await user.click(screen.getByRole("button", { name: /adicionar/i }));
 
         await waitFor(() => {
-            const currentInput = screen.queryByRole("textbox", {
-                name: /nova tarefa|título|descrição|adicionar tarefa/i
-            }) as HTMLInputElement;
-
+            const currentInput = screen.queryByPlaceholderText(/nova tarefa/i) as HTMLInputElement;
             expect(currentInput?.value).toBe("");
         });
     });
