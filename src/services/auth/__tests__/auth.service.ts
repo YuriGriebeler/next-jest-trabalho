@@ -1,5 +1,6 @@
 import { AppError } from "@/utils/app-error";
-import type { AuthUser, LoginPayload } from "./auth.types";
+
+import type { AuthUser, LoginPayload } from "@/services/auth/auth.types";
 
 type LoginValidationErrors = {
   email?: string;
@@ -11,7 +12,7 @@ const DEMO_USER = {
   name: process.env.AUTH_DEMO_USER_NAME ?? "Aluno Demo",
   email: (process.env.AUTH_DEMO_EMAIL ?? "aluno@authtask.dev").toLowerCase(),
   password: process.env.AUTH_DEMO_PASSWORD ?? "123456",
-} as const;
+};
 
 export function validateLoginPayload(
   payload: Partial<LoginPayload>,
@@ -37,30 +38,22 @@ export function validateLoginPayload(
 
 export function hasValidationErrors(errors: LoginValidationErrors): boolean {
   return Object.keys(errors).length > 0;
+  
 }
 
 export function sanitizeUserId(value: string): string {
-  if (typeof value !== "string" || value.trim() === "") {
-    return "";
-  }
+  if (!value) return "";
 
   return value
     .trim()
-    .normalize("NFD")                           
-    .replace(/[\u0300-\u036f]/g, "")           
     .toLowerCase()
-    .replace(/[^a-z0-9_]/g, "_")               
-    .replace(/_+/g, "_")                       
-    .replace(/^_+|_+$/g, "");                  
+    .replace(/[^a-z0-9_]/g, "_")     
+    .replace(/_{2,}/g, "_")          
+    .replace(/^_+|_+$/g, "");        
 }
 
 export async function authenticateUser(payload: LoginPayload): Promise<AuthUser> {
-  const validationErrors = validateLoginPayload(payload);
-
- if (hasValidationErrors(validationErrors)) {
-  throw new Error("Dados de login inválidos"); 
-}
-
+ 
   const inputEmail = payload.email.trim().toLowerCase();
   const inputPassword = payload.password.trim();
 
@@ -68,7 +61,8 @@ export async function authenticateUser(payload: LoginPayload): Promise<AuthUser>
     inputEmail !== DEMO_USER.email ||
     inputPassword !== DEMO_USER.password
   ) {
-    throw new Error("Credenciais inválidas");
+    throw new AppError("INVALID_CREDENTIALS", "Credenciais inválidas. Verifique e-mail e senha.", 401);
+    
   }
 
   return {
