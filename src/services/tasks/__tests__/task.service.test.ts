@@ -54,14 +54,11 @@ describe("buildTaskService", () => {
     mockRepository.createForUser.mockResolvedValue(newTask);
 
     const result = await service.createTask({
-      userId: "user123",
-      title: "Nova tarefa",
+      userId: "user123", 
+      title: "Nova tarefa"
     });
 
-    expect(mockRepository.createForUser).toHaveBeenCalledWith("user123", {
-      title: "Nova tarefa",
-      completed: false,
-    });
+    expect(mockRepository.createForUser).toHaveBeenCalledWith("user123", "Nova tarefa");
     expect(result).toEqual(newTask);
   });
 
@@ -70,7 +67,7 @@ describe("buildTaskService", () => {
     mockRepository.deleteForUser.mockResolvedValue(undefined);
 
     await service.deleteTask({
-      userId: "user123", 
+      userId: "user123",
       taskId: "task456"
     });
 
