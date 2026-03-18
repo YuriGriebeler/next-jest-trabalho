@@ -1,20 +1,25 @@
-const nextJest = require("next/jest.js");
+import type { Config } from 'jest';
+import nextJest from 'next/jest.js';
 
-const createJestConfig = nextJest({ dir: "./" });
+const createJestConfig = nextJest({
+  dir: './',
+});
 
-const config = {
-  coverageProvider: "v8",
-  testEnvironment: "jsdom",
-  setupFiles: ["<rootDir>/jest.setup.ts"],
-  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
+const config: Config = {
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  testMatch: ['**/__tests__/**/*.test.ts', '**/__tests__/**/*.test.tsx'],
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1",
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
-  collectCoverageFrom: [
-    "src/**/*.{ts,tsx}",
-    "!src/**/*.d.ts",
-    "!src/**/__tests__/**",
-  ],
+  coverageThreshold: {
+    global: {
+      statements: 85,
+      branches: 80,
+      functions: 85,
+      lines: 85,
+    },
+  },
 };
 
-module.exports = createJestConfig(config);
+export default createJestConfig(config);
