@@ -46,20 +46,25 @@ export function sanitizeUserId(value: string): string {
 
   return value
     .trim()
-    .normalize("NFD")                           
-    .replace(/[\u0300-\u036f]/g, "")           
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/[^a-z0-9_]/g, "_")               
-    .replace(/_+/g, "_")                       
-    .replace(/^_+|_+$/g, "");                  
+    .replace(/[^a-z0-9_]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
 export async function authenticateUser(payload: LoginPayload): Promise<AuthUser> {
   const validationErrors = validateLoginPayload(payload);
 
- if (hasValidationErrors(validationErrors)) {
-  throw new Error("Dados de login inválidos"); 
-}
+  if (hasValidationErrors(validationErrors)) {
+    throw new AppError(
+      "VALIDATION_ERROR",
+      "Dados de login inválidos",
+      400,
+      validationErrors
+    );
+  }
 
   const inputEmail = payload.email.trim().toLowerCase();
   const inputPassword = payload.password.trim();
@@ -68,7 +73,11 @@ export async function authenticateUser(payload: LoginPayload): Promise<AuthUser>
     inputEmail !== DEMO_USER.email ||
     inputPassword !== DEMO_USER.password
   ) {
-    throw new Error("Credenciais inválidas");
+    throw new AppError(
+      "INVALID_CREDENTIALS",
+      "Credenciais inválidas",
+      401
+    );
   }
 
   return {

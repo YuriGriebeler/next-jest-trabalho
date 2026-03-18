@@ -12,10 +12,10 @@ describe("AppError", () => {
     expect(error.status).toBe(401);
   });
 
-  it("permite criar sem code (caso opcional)", () => {
-    const error = new AppError("Erro interno", 500);
+  it("permite criar sem status (usa padrão 500)", () => {
+    const error = new AppError("INTERNAL_ERROR", "Erro interno");
 
-    expect(error.code).toBeUndefined(); 
+    expect(error.code).toBe("INTERNAL_ERROR");
     expect(error.status).toBe(500);
     expect(error.message).toBe("Erro interno");
   });
@@ -24,6 +24,16 @@ describe("AppError", () => {
     const details = { email: "inválido", password: "curta" };
     const error = new AppError("BAD_REQUEST", "Dados inválidos", 400, details);
 
+    expect(error.details).toEqual(details);
+  });
+
+  it("cria instância com todos os parâmetros", () => {
+    const details = { field: "email", reason: "format" };
+    const error = new AppError("VALIDATION_ERROR", "Campo inválido", 422, details);
+
+    expect(error.code).toBe("VALIDATION_ERROR");
+    expect(error.message).toBe("Campo inválido");
+    expect(error.status).toBe(422);
     expect(error.details).toEqual(details);
   });
 });
