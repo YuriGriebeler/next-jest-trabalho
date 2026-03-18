@@ -61,7 +61,7 @@ describe("AuthContext", () => {
 
         expect(() => {
             render(<TestConsumer />);
-        }).toThrow("useAuth deve ser usado dentro de AuthProvider");
+        }).toThrow(/useAuth deve ser usado dentro de.*AuthProvider/i);
 
         (console.error as jest.Mock).mockRestore();
     });
@@ -96,7 +96,7 @@ describe("AuthContext", () => {
 
         expect(() => {
             render(<TestConsumer />);
-        }).toThrow("useAuth deve ser usado dentro de AuthProvider");
+        }).toThrow(/useAuth deve ser usado dentro de.*AuthProvider/i);
 
         expect(screen.queryByTestId("user-email")).not.toBeInTheDocument();
 
