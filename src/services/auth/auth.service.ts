@@ -1,5 +1,4 @@
 import { AppError } from "@/utils/app-error";
-
 import type { AuthUser, LoginPayload } from "./auth.types";
 
 type LoginValidationErrors = {
@@ -10,9 +9,9 @@ type LoginValidationErrors = {
 const DEMO_USER = {
   id: process.env.AUTH_DEMO_USER_ID ?? "aluno_demo",
   name: process.env.AUTH_DEMO_USER_NAME ?? "Aluno Demo",
-  email: process.env.AUTH_DEMO_EMAIL ?? "aluno@authtask.dev",
+  email: (process.env.AUTH_DEMO_EMAIL ?? "aluno@authtask.dev").toLowerCase(),
   password: process.env.AUTH_DEMO_PASSWORD ?? "123456",
-};
+} as const;
 
 export function validateLoginPayload(
   payload: Partial<LoginPayload>,
@@ -37,31 +36,52 @@ export function validateLoginPayload(
 }
 
 export function hasValidationErrors(errors: LoginValidationErrors): boolean {
-  return Object.values(errors).some(Boolean);
+  return Object.keys(errors).length > 0;
 }
 
 export function sanitizeUserId(value: string): string {
+  if (typeof value !== "string" || value.trim() === "") {
+    return "";
+  }
+
   return value
     .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/[^a-z0-9_-]/g, "_")
-    .replace(/_{2,}/g, "_");
+    .replace(/[^a-z0-9_]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
 export async function authenticateUser(payload: LoginPayload): Promise<AuthUser> {
-  const email = payload.email.trim().toLowerCase();
-  const password = payload.password.trim();
+  const validationErrors = validateLoginPayload(payload);
 
-  if (email !== DEMO_USER.email.toLowerCase() || password !== DEMO_USER.password) {
+  if (hasValidationErrors(validationErrors)) {
+    throw new AppError(
+      "VALIDATION_ERROR",
+      "Dados de login inválidos",
+      400,
+      validationErrors
+    );
+  }
+
+  const inputEmail = payload.email.trim().toLowerCase();
+  const inputPassword = payload.password.trim();
+
+  if (
+    inputEmail !== DEMO_USER.email ||
+    inputPassword !== DEMO_USER.password
+  ) {
     throw new AppError(
       "INVALID_CREDENTIALS",
-      "Credenciais inválidas. Verifique e-mail e senha.",
-      401,
+      "Credenciais inválidas",
+      401
     );
   }
 
   return {
-    id: sanitizeUserId(DEMO_USER.id || DEMO_USER.email),
+    id: sanitizeUserId(DEMO_USER.id),
     name: DEMO_USER.name,
     email: DEMO_USER.email,
   };
